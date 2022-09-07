@@ -31,13 +31,11 @@ const game = {
             cell.onclick = this.playerMove.bind(this);
         }
         this.resetBtn.addEventListener('click', this.reset.bind(this));
-        this.pickXorO.addEventListener('change', this.reset.bind(this));
-        this.pickXorO.addEventListener('change', function () {
-            game.player = -game.player; 
-            game.cpu = -game.cpu; });
-        this.pickXorO.addEventListener('change', this.reset.bind(this));
-            
-            
+        //this.pickXorO.addEventListener('change', this.reset.bind(this));
+
+
+        this.pickXorO.addEventListener('change', this.switchFunction.bind(this));
+                 
                                                       
       
     },
@@ -224,6 +222,12 @@ const game = {
         if (game.cpu === 1) {
             game.cpuMove();
         }
+    },
+
+    switchFunction: function () {
+        this.player = -this.player;
+        this.cpu = -this.cpu;
+        this.reset();
     },
 
     evaluateMove: function (x,y, brd, player) {
