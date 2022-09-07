@@ -9,8 +9,8 @@ const game = {
     ],
 
     turn: 1,
-    player:-1,
-    cpu: 1,
+    player:1,
+    cpu: -1,
     status: null,
 
     init: function() {
@@ -22,6 +22,7 @@ const game = {
         this.cells = document.querySelectorAll('.cell');
         this.resetBtn = document.querySelector('#resetBtn');
         this.result = document.querySelector('#result');
+        this.pickXorO = document.querySelector('#pickXorO');
        
     },
     
@@ -29,7 +30,15 @@ const game = {
         for (let cell of this.cells) {
             cell.onclick = this.playerMove.bind(this);
         }
-        resetBtn.addEventListener('click', this.reset.bind(this));
+        this.resetBtn.addEventListener('click', this.reset.bind(this));
+        this.pickXorO.addEventListener('change', this.reset.bind(this));
+        this.pickXorO.addEventListener('change', function () {
+            game.player = -game.player; 
+            game.cpu = -game.cpu; });
+        this.pickXorO.addEventListener('change', this.reset.bind(this));
+            
+            
+                                                      
       
     },
 
@@ -212,6 +221,9 @@ const game = {
         this.result.textContent = ' ';
         this.status = null;
         this.render();
+        if (game.cpu === 1) {
+            game.cpuMove();
+        }
     },
 
     evaluateMove: function (x,y, brd, player) {
