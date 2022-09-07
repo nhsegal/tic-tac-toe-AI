@@ -9,6 +9,8 @@ const game = {
     ],
 
     turn: 1,
+    player:-1,
+    cpu: 1,
     status: null,
 
     init: function() {
@@ -41,6 +43,23 @@ const game = {
             return;
            
         }
+
+
+        while (this.turn === this.cpu) {
+            let randomX = Math.floor(Math.random()*3);
+            let randomY = Math.floor(Math.random()*3);
+            while (this.board[randomX][randomY] != 0) {
+                randomX = Math.floor(Math.random()*3);
+                randomY = Math.floor(Math.random()*3);
+            }
+            this.board[randomX][randomY] = this.cpu;
+            this.checkForEnd(this.board);
+           
+            this.render();
+            this.turn = -this.turn;
+        }
+
+        /*
         while (this.turn === -1) {
             let nextMove = {    
                                 score: 100,
@@ -84,6 +103,7 @@ const game = {
 
            
         }
+        */
     },
 
     render: function() {
@@ -105,13 +125,11 @@ const game = {
     // mark it, advance the count, render the board, check for win, let the CPU move
     playerMove: function(e) {  
         if (this.status !== null){
-            console.log("Over!")
             return;
         }
-        if (this.turn === 1 && this.board[e.target.dataset.row][e.target.dataset.col] === 0) {
-            this.board[e.target.dataset.row][e.target.dataset.col] = 1;
+        if (this.turn === this.player && this.board[e.target.dataset.row][e.target.dataset.col] === 0) {
+            this.board[e.target.dataset.row][e.target.dataset.col] = this.player;
             this.checkForEnd(this.board);
-
             this.render();
             this.turn = -this.turn;
             this.cpuMove();
@@ -122,10 +140,10 @@ const game = {
     checkForEnd: function(brd) { 
         this.status = this.checkRows(brd) ||  this.checkCols(brd) || this.checkDiagonals(brd) || this.checkForTie(brd);
       
-        if (this.status === 1) {
+        if (this.status === this.player) {
             result.textContent = "You won!"
         }
-        else if (this.status === -1) {
+        else if (this.status === this.cpu) {
             result.textContent = "You lost!"
         }
         else if (this.status === 0) {
@@ -136,7 +154,6 @@ const game = {
 
     // Check functions returns who the win
     // 1 === player, -1 === cpu, 0 === tie, null === still in play
-
 
     checkRows: function(brd) {
         for (let i = 0; i < 3; i++) {
@@ -173,7 +190,6 @@ const game = {
         }
         return null;
     },
-
 
     checkForTie: function(brd) {
         for (let i = 0; i < 3; i++) {
@@ -214,4 +230,7 @@ const game = {
 }
 
 game.init();
+if (game.cpu === 1) {
+    game.cpuMove();
+}
 game.evaluateMove(0,0,game.board,1)
