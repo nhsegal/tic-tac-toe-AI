@@ -3,13 +3,13 @@
 const game = {
 
     board: [
-       [0, 0, 0],
-       [0, 0, 0],
+       [1, -1, 1],
+       [1, -1, 0],
        [0, 0, 0]
     ],
 
-    // For turn, player, cpu:   1: X, -1: O  
-    turn: 1,
+    // For turn, player, cpu,   1 = X, -1 = O  
+    turn: -1,
     player: 1,
     cpu: -1,
 
@@ -20,7 +20,7 @@ const game = {
         this.cacheDom();
         this.bindEvents();
         if (this.cpu === 1) {
-            cpuMove();
+            this.cpuMove();
         }
         this.render();
     },
@@ -38,6 +38,7 @@ const game = {
         }
         this.resetBtn.addEventListener('click', this.reset.bind(this));
         this.pickXorO.addEventListener('change', this.switchFunction.bind(this));
+        console.log('bound');
     },
 
     cpuMove: function() {
@@ -46,24 +47,28 @@ const game = {
             return;
         }
 
-        while (this.turn === this.cpu) {  
+        if (this.turn === this.cpu) {  
             // Score each position on the board
             const listOfMoves = []
             for (let i = 0; i < 3; i++) {
                 for (let j = 0; j < 3; j++) {
                     if (this.board[i][j] === 0) {
-                        let move = {i: i, j: j, score: this.evaluateMove(i, j, this.cpu, this.cpu)}
+                        let move = {i: i, j: j, score: this.evaluateMove(i, j, 0, true)}
                         listOfMoves.push(move);
                     }
-                }
+                }  
             }
 
+            console.table(listOfMoves)
             // Select the move from the list with the highest score
-            const bestMove = listOfMoves.reduce((prev, current) => (prev.score > current.score) ? prev : current)
+            const bestMove = listOfMoves.reduce((prev, current) => (prev.score < current.score) ? prev : current)
+            
+            
             this.board[bestMove.i][bestMove.j] = this.cpu; 
-            this.checkStatus();
+            this.status = this.checkStatus(); 
             this.render();
-            this.turn = -this.turn;       
+            this.turn = -this.turn;      
+            
         }      
     },
 
@@ -114,19 +119,16 @@ const game = {
         // check status
         if (this.turn === this.player && this.board[e.target.dataset.row][e.target.dataset.col] === 0) {
             this.board[e.target.dataset.row][e.target.dataset.col] = this.player;
-            this.checkStatus();
+            this.status = this.checkStatus();
             this.render();
             this.turn = -this.turn;
             this.cpuMove();
         }   
     },
 
-    // Rewrote to remove the board as a parameter
-    checkStatus: function() { 
-        this.status = this.checkRows() ||  this.checkCols() || this.checkDiagonals() || this.checkForTie();
-        return  (this.status)
+    checkStatus: function() {
+        return this.checkRows() ||  this.checkCols() || this.checkDiagonals() || this.checkForTie();
     },
-
 
     // Check functions returns who the win
     // 1 === player, -1 === cpu, 0 === tie, null === still in play
@@ -143,7 +145,6 @@ const game = {
         return null;
     },
 
-    
     checkCols: function() {
         let colCheck = this.board.reduce((a,b)=> [a[0]+ b[0], a[1]+ b[1], a[2]+ b[2]]);
         if (colCheck.indexOf(3) >= 0) { 
@@ -200,45 +201,61 @@ const game = {
         this.reset();
     },
 
-    evaluateMove: function (row, col, player, perspective) {
-        
+    evaluateMove: function (row, col, depth, isMaximizing) {
         // The board is temporary modified with a tentative move and evaluated
-        this.board[row][col] = player;
+        if (depth%2 === 0) {
+            this.board[row][col] = this.cpu;
+        } 
+        
+        else {
+            this.board[row][col] = this.player;
+        }
+        
         let score = this.checkStatus();
-        this.status = null;
-
-        // If the move ends the game, the result is the move's score
+    
+        // If the move ends the game return its score
+        // but undo the move first
         if (score !== null) {
-            score = perspective*score;
+          //  if (isMaximizing){
+          //      score = -score;
+          //  }
+            this.board[row][col] = 0;
+           
+            return score;
         }
 
-        // If it doesn't end the game
-        else if (score === null) {
-            
-            //Loop through the modified board, evaluate if any moves produce a win, lose or tie:
-            const listOfMoves = []
-
+        const listOfMoves = []
+        if (isMaximizing) {
             for (let i = 0; i < 3; i++) {
                 for (let j = 0; j < 3; j++) {
                     if (this.board[i][j] === 0) {
-                        let move = {i: i, j: j, score: this.evaluateMove(i, j, -this.cpu, this.cpu)}
+                        let move = {i: i, j: j, score: this.evaluateMove(i, j, depth+1, true)}
                         listOfMoves.push(move);
                     }
                 }
             }
+            const bestMove = listOfMoves.reduce((prev, current) => (prev.score > current.score) ? prev : current);
+            this.board[row][col] = 0;
+           
+            return bestMove.score
+        }
 
-            const bestMove = listOfMoves.reduce((prev, current) => (prev.score < current.score) ? prev : current)
-            score = bestMove.score;
-
-
-        } 
-
-        // Undo the tentative move
-        this.board[row][col] = 0;
-        return score
+        else {
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    if (this.board[i][j] === 0) {
+                        let move = {i: i, j: j, score: this.evaluateMove(i, j, depth+1, false)}
+                        listOfMoves.push(move);
+                    }
+                }
+            }
+            const bestMove = listOfMoves.reduce((prev, current) => (prev.score < current.score) ? prev : current);
+            this.board[row][col] = 0;
+           
+            return bestMove.score;
+        }
     }
-    
-
 }
 
 game.init();
+
