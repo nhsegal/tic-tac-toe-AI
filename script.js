@@ -180,19 +180,6 @@ const game = {
     },
 
     checkForTie: function() {
-
-        this.board.forEach((rowContent, row, arr) => {rowContent.forEach (
-            (cellContent, col, arr) => { 
-                if (cellContent === 0) {
-                   return null;
-                } 
-            }
-        ); 
-        return 0;
-        });
-
-        
-
         for (let i = 0; i < 3; i++) {
             for (let j = 0; j < 3; j++) {
                 if (this.board[i][j] === 0) {
@@ -204,9 +191,6 @@ const game = {
     },
 
     reset: function () {
-        console.log("reset")
-
-        //Can't use forEach because that can't change the array
         this.board.forEach( (rowContent, row, board) => {board[row].forEach(
             (cellContent, col, thisRow) => { thisRow[col] = 0});}); 
         
@@ -251,8 +235,19 @@ const game = {
             return {score};
         }
 
-       
+    
         const listOfMoves = []
+
+        function pickMove(prev, current) {
+            if ((prev.score > current.score && isMaximizing) || (prev.score < current.score && !isMaximizing)) {
+                return prev;
+            }
+            if ((prev.score < current.score && !isMaximizing) || (prev.score < current.score && isMaximizing)) {
+                return current;
+            }
+            return Math.random() < 0.5 ? prev : current;
+        }
+
         if (isMaximizing) {
             this.board.forEach((rowContent, row) => {rowContent.forEach (
                 (cellContent, col) => { 
@@ -262,7 +257,7 @@ const game = {
                     } 
                 }
             ); });
-            const bestMove = listOfMoves.reduce((prev, current) => (prev.score < current.score) ? prev : current);
+            const bestMove = listOfMoves.reduce(pickMove);
             // Removing added move
             this.board[row][col] = 0;
             return {score: bestMove.score}
@@ -278,7 +273,8 @@ const game = {
                 }
             ); });
 
-            const bestMove = listOfMoves.reduce((prev, current) => (prev.score > current.score) ? prev : current);
+            const bestMove = listOfMoves.reduce(pickMove);
+
              // Removing added move
             this.board[row][col] = 0;
             return {score: bestMove.score}
