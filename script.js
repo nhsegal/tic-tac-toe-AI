@@ -3,15 +3,15 @@
 const game = {
 
     board: [
-       [0,0, 0],
-       [0,0, 0],
+       [0, 0, 0],
+       [0, 0, 0],
        [0, 0, 0]
     ],
 
     // For turn, player, cpu,   1 = X, -1 = O  
     turn: 1,
-    player: 1,
-    cpu: -1,
+    player: -1,
+    cpu: 1,
 
     // For status:  null: game in progress, 1: X won, -1: O won, 0: tied 
     status: null,
@@ -50,20 +50,27 @@ const game = {
         if (this.turn === this.cpu) {  
             // Score each position on the board
             const listOfMoves = []
+          
             for (let i = 0; i < 3; i++) {
                 for (let j = 0; j < 3; j++) {
                     if (this.board[i][j] === 0) {
-                        let move = {i: i, j: j, score: this.evaluateMove(i, j, 0, true)}
+                        let move = {i: i, j: j, score: this.evaluateMove(i, j, 0, true).score, depth: this.evaluateMove(i, j, 0, true).depth}
                         listOfMoves.push(move);
                     }
                 }  
             }
 
-       
+            //for (let item of listOfMoves){
+            //    console.log(`Move: ${item.i}, ${item.j} Score: ${item.score} Depth: ${item.depth}`)
+            //}
 
             // Select the move from the list with the highest score
+            
             const bestMove = listOfMoves.reduce((prev, current) => (prev.score > current.score) ? prev : current)
-            this.board[bestMove.i][bestMove.j] = this.cpu; 
+           // console.log(`The best move is row:${bestMove.i}, col: ${bestMove.j}`);
+            
+            
+            this.board[bestMove.i][bestMove.j] = this.cpu;       
             this.status = this.checkStatus(); 
             this.render();
             this.turn = -this.turn;      
@@ -125,12 +132,11 @@ const game = {
         }   
     },
 
+    // Check functions returns who the winner is
+    // 1 === X, -1 === O, 0 === tie, null === still in play
     checkStatus: function() {
         return this.checkRows() ||  this.checkCols() || this.checkDiagonals() || this.checkForTie();
     },
-
-    // Check functions returns who the win
-    // 1 === player, -1 === cpu, 0 === tie, null === still in play
 
     checkRows: function() {
         for (let i = 0; i < 3; i++) {
@@ -201,52 +207,61 @@ const game = {
     },
 
     evaluateMove: function (row, col, depth, isMaximizing) {
-        // The board is temporary modified with a tentative move and evaluated
-        
+       
+        // The board is temporary modified with a tentative move and evaluated   
+
+
         if (depth%2 === 0) {
             this.board[row][col] = this.cpu;
         } 
         else {
-            this.board[row][col] = this.player;
-            
+            this.board[row][col] = -this.cpu;    
         }
         
-        let score = this.checkStatus();
-    
+        let score = null;
+
         // If the move would end the game return its score
         // but undo the move first
-        if (score !== null) {
+
+        // If cpu is X (1) and checkStatus() is 1, cpu wins, so score it as 1
+        // If cpu is O (-1) and checkStatus() is 1, player wins, so score is -1
+        // If cpu is O (-1) and checkStatus() is -1, cpu wins, so score is 1?
+
+
+        if (this.checkStatus() !== null) {
+            score = 10*this.checkStatus()*this.cpu/(depth+1);
             this.board[row][col] = 0;
-            return this.cpu*score/(depth+1);
+            return {score, depth};
         }
 
+       
         const listOfMoves = []
         if (isMaximizing) {
             for (let i = 0; i < 3; i++) {
                 for (let j = 0; j < 3; j++) {
                     if (this.board[i][j] === 0) {
-                        let move = {i: i, j: j, score: this.evaluateMove(i, j, depth+1, false)}
+                        let move = {i: i, j: j, score: this.evaluateMove(i, j, depth+1, false).score, depth: this.evaluateMove(i, j, depth+1, false).depth}
                         listOfMoves.push(move);
                     }
                 }
             }
-            const bestMove = listOfMoves.reduce((prev, current) => (prev.score >= current.score) ? prev : current);
+            const bestMove = listOfMoves.reduce((prev, current) => (prev.score < current.score) ? prev : current);
             this.board[row][col] = 0;
-            return bestMove.score/(depth+1)
+            return {score: bestMove.score, depth: bestMove.depth}
         }
 
         else {
             for (let i = 0; i < 3; i++) {
                 for (let j = 0; j < 3; j++) {
                     if (this.board[i][j] === 0) {
-                        let move = {i: i, j: j, score: this.evaluateMove(i, j, depth+1, true)}
+                        let move = {i: i, j: j, score: this.evaluateMove(i, j, depth+1, true).score, depth: this.evaluateMove(i, j, depth+1, true).depth}
                         listOfMoves.push(move);
                     }
                 }
             }
-            const bestMove = listOfMoves.reduce((prev, current) => (prev.score <= current.score) ? prev : current);
+            const bestMove = listOfMoves.reduce((prev, current) => (prev.score > current.score) ? prev : current);
             this.board[row][col] = 0;
-            return bestMove.score/(depth+1);
+            return {score: bestMove.score, depth: bestMove.depth}
         }
     }
 }
