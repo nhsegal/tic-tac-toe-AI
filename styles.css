@@ -38,7 +38,33 @@ body {
     justify-content: center;
     text-align: center;
     background: white;
+    -webkit-transition: -webkit-transform .8s ease-in-out;
+    -ms-transition: -ms-transform .8s ease-in-out;
+    transition: transform .8s ease-in-out;
 }
+
+@keyframes append-animate {
+  from {
+    transform: rotate(360deg) scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.new-entry {
+  transform-origin: 50% 50%;
+  animation: append-animate 1s linear;
+}
+/*
+.cell #adding {
+  transform: rotate(360deg) scale(.01);
+  -ms-transform: rotate(360deg) scale(.01);
+  -webkit-transform: rotate(360deg) scale(.01);
+}
+*/
 
 button {
     width: 18rem;
@@ -106,11 +132,28 @@ button {
     height: 2rem;
     gap:2px;
     align-items: center;
+    margin-top: 1rem;
   }
 
   #pickXorY{
     font-size: 2rem;
   }
+
  .symbol {
     font-size: 6rem;
+  }
+
+  #rotating_image {
+    position: absolute;
+    left: 70px;
+    top: 100px;
+    -webkit-transition: -webkit-transform .8s ease-in-out;
+    -ms-transition: -ms-transform .8s ease-in-out;
+    transition: transform .8s ease-in-out;
+  
+  }
+  #rotating_image:hover {
+    transform: rotate(360deg) scale(2);
+    -ms-transform: rotate(360deg) scale(2);
+    -webkit-transform: rotate(360deg) scale(2);
   }

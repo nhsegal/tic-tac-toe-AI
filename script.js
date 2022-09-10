@@ -38,7 +38,6 @@ const game = {
         }
         this.resetBtn.addEventListener('click', this.reset.bind(this));
         this.pickXorO.addEventListener('change', this.switchFunction.bind(this));
-       
     },
 
     cpuMove: function() {
@@ -263,7 +262,7 @@ const game = {
             this.board[row][col] = 0;
             return {score: bestMove.score}
         }
-    }
+    },
 }
 
 game.init();
