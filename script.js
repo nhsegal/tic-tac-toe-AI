@@ -47,29 +47,24 @@ const game = {
         }
 
         if (this.turn === this.cpu) {  
-            // Score each position on the board
+            // Score each position on the board and store it in an array
             const listOfMoves = []
           
-            for (let i = 0; i < 3; i++) {
-                for (let j = 0; j < 3; j++) {
-                    if (this.board[i][j] === 0) {
-                        let move = {i: i, j: j, score: this.evaluateMove(i, j, 0, true).score}
+            this.board.forEach((rowContent, row, arr) => {rowContent.forEach (
+                (cellContent, col, arr) => { 
+                    if (cellContent === 0) {
+                        let move = {row, col, score: this.evaluateMove(row, col, 0, true).score}
                         listOfMoves.push(move);
-                    }
-                }  
-            }
-
-            //for (let item of listOfMoves){
-            //    console.log(`Move: ${item.i}, ${item.j} Score: ${item.score} Depth: ${item.depth}`)
-            //}
+                    } 
+                }
+            ); });
+                           
 
             // Select the move from the list with the highest score
-            
             const bestMove = listOfMoves.reduce((prev, current) => (prev.score > current.score) ? prev : current)
-           // console.log(`The best move is row:${bestMove.i}, col: ${bestMove.j}`);
+         
             
-            
-            this.board[bestMove.i][bestMove.j] = this.cpu;       
+            this.board[bestMove.row][bestMove.col] = this.cpu;       
             this.status = this.checkStatus(); 
             this.render();
             this.turn = -this.turn;      
@@ -184,11 +179,12 @@ const game = {
     },
 
     reset: function () {
-        for (let i = 0; i < 3; i++) {
-            for (let j = 0; j < 3; j++) {
-                this.board[i][j] = 0;
-            }
-        }
+        console.log("reset")
+
+        //Can't use forEach because that can't change the array
+        this.board.forEach( (rowContent, row, board) => {board[row].forEach(
+            (cellContent, col, thisRow) => { thisRow[col] = 0});}); 
+        
         this.turn = 1;
         this.result.textContent = ' ';
         this.status = null;
@@ -236,28 +232,29 @@ const game = {
        
         const listOfMoves = []
         if (isMaximizing) {
-            for (let i = 0; i < 3; i++) {
-                for (let j = 0; j < 3; j++) {
-                    if (this.board[i][j] === 0) {
-                        let move = {i: i, j: j, score: this.evaluateMove(i, j, depth+1, false).score}
+            this.board.forEach((rowContent, row) => {rowContent.forEach (
+                (cellContent, col) => { 
+                    if (cellContent === 0) {
+                        let move = {row, col, score: this.evaluateMove(row, col, depth+1, false).score}
                         listOfMoves.push(move);
-                    }
+                    } 
                 }
-            }
+            ); });
             const bestMove = listOfMoves.reduce((prev, current) => (prev.score < current.score) ? prev : current);
             this.board[row][col] = 0;
             return {score: bestMove.score}
         }
 
         else {
-            for (let i = 0; i < 3; i++) {
-                for (let j = 0; j < 3; j++) {
-                    if (this.board[i][j] === 0) {
-                        let move = {i: i, j: j, score: this.evaluateMove(i, j, depth+1, true).score}
+            this.board.forEach((rowContent, row) => {rowContent.forEach (
+                (cellContent, col) => { 
+                    if (cellContent === 0) {
+                        let move = {row, col, score: this.evaluateMove(row, col, depth+1, true).score}
                         listOfMoves.push(move);
-                    }
+                    } 
                 }
-            }
+            ); });
+
             const bestMove = listOfMoves.reduce((prev, current) => (prev.score > current.score) ? prev : current);
             this.board[row][col] = 0;
             return {score: bestMove.score}
