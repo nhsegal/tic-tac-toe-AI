@@ -61,8 +61,20 @@ const game = {
                            
 
             // Select the move from the list with the highest score
-            const bestMove = listOfMoves.reduce((prev, current) => (prev.score > current.score) ? prev : current)
-         
+          //  const bestMove = listOfMoves.reduce((prev, current) => (prev.score > current.score) ? prev : current)
+            
+            const bestMove = listOfMoves.reduce(
+                function (prev, current) {
+                    if (prev.score > current.score) {
+                        return prev;
+                    }
+                    if (prev.score < current.score) {
+                        return current;
+                    }
+                    return Math.random() < 0.5 ? prev : current;
+                }
+            )
+           
             
             this.board[bestMove.row][bestMove.col] = this.cpu;       
             this.status = this.checkStatus(); 
