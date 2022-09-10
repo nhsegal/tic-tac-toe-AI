@@ -180,6 +180,19 @@ const game = {
     },
 
     checkForTie: function() {
+
+        this.board.forEach((rowContent, row, arr) => {rowContent.forEach (
+            (cellContent, col, arr) => { 
+                if (cellContent === 0) {
+                   return null;
+                } 
+            }
+        ); 
+        return 0;
+        });
+
+        
+
         for (let i = 0; i < 3; i++) {
             for (let j = 0; j < 3; j++) {
                 if (this.board[i][j] === 0) {
@@ -214,10 +227,7 @@ const game = {
     },
 
     evaluateMove: function (row, col, depth, isMaximizing) {
-       
         // The board is temporary modified with a tentative move and evaluated   
-
-
         if (depth%2 === 0) {
             this.board[row][col] = this.cpu;
         } 
@@ -232,8 +242,8 @@ const game = {
 
         // If cpu is X (1) and checkStatus() is 1, cpu wins, so score it as 1
         // If cpu is O (-1) and checkStatus() is 1, player wins, so score is -1
-        // If cpu is O (-1) and checkStatus() is -1, cpu wins, so score is 1?
-
+        // If cpu is O (-1) and checkStatus() is -1, cpu wins, so score is 1
+        // Thus score is checkStatus()*cpu. 
 
         if (this.checkStatus() !== null) {
             score = 10*this.checkStatus()*this.cpu/(depth+1);
@@ -253,6 +263,7 @@ const game = {
                 }
             ); });
             const bestMove = listOfMoves.reduce((prev, current) => (prev.score < current.score) ? prev : current);
+            // Removing added move
             this.board[row][col] = 0;
             return {score: bestMove.score}
         }
@@ -268,6 +279,7 @@ const game = {
             ); });
 
             const bestMove = listOfMoves.reduce((prev, current) => (prev.score > current.score) ? prev : current);
+             // Removing added move
             this.board[row][col] = 0;
             return {score: bestMove.score}
         }
