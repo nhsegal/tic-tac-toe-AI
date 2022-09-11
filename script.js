@@ -26,6 +26,8 @@ function pickMinMove(a, b) {
     return b
 }
 
+let winType = null;
+
 const game = {
 
     board: [
@@ -56,6 +58,14 @@ const game = {
         this.resetBtn = document.querySelector('#resetBtn');
         this.result = document.querySelector('#result');
         this.pickXorO = document.querySelector('#pickXorO');
+        this.topRow = document.querySelectorAll("[data-row='0']");
+        this.midRow = document.querySelectorAll("[data-row='1']");
+        this.botRow = document.querySelectorAll("[data-row='2']");
+        this.leftCol = document.querySelectorAll("[data-col='0']");
+        this.midCol = document.querySelectorAll("[data-col='1']");
+        this.rightCol = document.querySelectorAll("[data-col='2']");
+        this.leftDiagonal = document.querySelectorAll("[data-col='0'][data-row='0'], [data-col='1'][data-row='1'], [data-col='2'][data-row='2']" );
+        this.rightDiagonal = document.querySelectorAll("[data-col='2'][data-row='0'], [data-col='1'][data-row='1'], [data-col='0'][data-row='2']");
     },
     
     bindEvents: function() {
@@ -102,7 +112,9 @@ const game = {
             
             
             this.board[bestMove.i][bestMove.j] = this.cpu;       
-            this.status = this.checkStatus(); 
+            this.status = this.checkStatus().winner; 
+            if (this.checkStatus().code) winType = this.checkStatus().code;
+            this.highlightWin(); 
             this.render();
             this.turn = -this.turn;      
             
@@ -156,7 +168,9 @@ const game = {
         // check status
         if (this.turn === this.player && this.board[e.target.dataset.row][e.target.dataset.col] === 0) {
             this.board[e.target.dataset.row][e.target.dataset.col] = this.player;
-            this.status = this.checkStatus();
+            this.status = this.checkStatus().winner;
+            if (this.checkStatus().code) winType = this.checkStatus().code;
+            this.highlightWin(); 
             this.render();
             this.turn = -this.turn;
             this.cpuMove();
@@ -166,56 +180,66 @@ const game = {
     // Check functions returns who the winner is
     // 1 === X, -1 === O, 0 === tie, null === still in play
     checkStatus: function() {
-        return this.checkRows() ||  this.checkCols() || this.checkDiagonals() || this.checkForTie();
+                    return {winner: (this.checkRows().winner ||  this.checkCols().winner || this.checkDiagonals().winner || this.checkForTie().winner), 
+                            code:  (this.checkRows().code ||  this.checkCols().code || this.checkDiagonals().code || null)}
     },
 
     checkRows: function() {
         for (let i = 0; i < 3; i++) {
             if (this.board[i].reduce((a,b)=>a+b) === 3) {
-                return 1;
+                return {winner: 1, code: i+1} ;
             }
             else if (this.board[i].reduce((a,b)=>a+b) === -3) {
-                 return -1;
+                 return {winner: -1, code: i+1};
             }
         }
-        return null;
+        return {winner: null};
     },
 
     checkCols: function() {
         let colCheck = this.board.reduce((a,b)=> [a[0]+ b[0], a[1]+ b[1], a[2]+ b[2]]);
         if (colCheck.indexOf(3) >= 0) { 
-            return 1;
+            let code = colCheck.indexOf(3) + 4;
+            return {winner: 1, code: code};
         }
         if (colCheck.indexOf(-3) >= 0) {
-            return -1;
+            let code = colCheck.indexOf(-3) + 4;
+            return {winner: -1, code: code};
         }
-        return null;
+        return {winner: null};
     },
 
     checkDiagonals: function() {
         let leftDiagonal = this.board[0][0] + this.board[1][1] + this.board[2][2];
         let rightDiagonal = this.board[2][0] + this.board[1][1] + this.board[0][2];
-        if (leftDiagonal == 3 || rightDiagonal == 3 ) { 
-            return 1;
+        if (leftDiagonal == 3) { 
+            return {winner: 1, code: 8}
         }
-        if (leftDiagonal == -3 || rightDiagonal == -3) {
-            return -1;
+        if (rightDiagonal == 3 ) { 
+            return {winner: 1, code: 7}
         }
-        return null;
+        if (leftDiagonal == -3) { 
+            return {winner: -1, code: 8}
+        }
+        if (rightDiagonal == -3) {
+            return {winner: -1, code: 7}
+        }
+        return {winner: null}
     },
 
     checkForTie: function() {
         for (let i = 0; i < 3; i++) {
             for (let j = 0; j < 3; j++) {
                 if (this.board[i][j] === 0) {
-                    return null;
+                    return {winner: null};
                 }
             }
         }
-        return 0;
+        return {winner: 0};
     },
 
     reset: function () {
+        winType = null;
         for (let i = 0; i < 3; i++) {
             for (let j = 0; j < 3; j++) {
                 this.board[i][j] = 0;
@@ -224,6 +248,12 @@ const game = {
         this.turn = 1;
         this.result.textContent = ' ';
         this.status = null;
+
+        //this.cells.forEach((e)=> (console.log(e.classList)));
+        for (let cell of this.cells) {
+            cell.classList.value = 'cell';
+        }
+       
         this.render();
         if (game.cpu === 1) {
             game.cpuMove();
@@ -240,8 +270,6 @@ const game = {
     evaluateMove: function (row, col, depth, isMaximizing) {
        
         // The board is temporary modified with a tentative move and evaluated   
-
-
         if (depth%2 === 0) {
             this.board[row][col] = this.cpu;
         } 
@@ -259,8 +287,8 @@ const game = {
         // If cpu is O (-1) and checkStatus() is -1, cpu wins, so score is 1?
 
 
-        if (this.checkStatus() !== null) {
-            score = 10*this.checkStatus()*this.cpu/(depth+1);
+        if (this.checkStatus().winner !== null) {
+            score = 10*this.checkStatus().winner*this.cpu/(depth+1);
             this.board[row][col] = 0;
             return {score};
         }
@@ -294,7 +322,46 @@ const game = {
             this.board[row][col] = 0;
             return {score: bestMove.score}
         }
+    },
+
+   highlightWin: function() {
+        switch(winType) {
+            case (1):
+                this.topRow.forEach((e) => e.classList.add("winning"));
+                
+                break;
+            case (2):
+                this.midRow.forEach((e) => e.classList.add("winning"));  
+                break;
+            
+            case (3):
+                this.botRow.forEach((e) => e.classList.add("winning"));
+                break;
+
+            case (4):
+                this.leftCol.forEach((e) => e.classList.add("winning"));
+                break;
+            case (5):
+                this.midCol.forEach((e) => e.classList.add("winning"));
+                break;
+            case (6):
+                this.rightCol.forEach((e) => e.classList.add("winning"));
+                break;
+           
+            case (7):
+                this.rightDiagonal.forEach((e) => e.classList.add("winning"));
+                break;
+            case (8):
+                this.leftDiagonal.forEach((e) => e.classList.add("winning"));   
+                break;
+                
+            
+            default:
+                this.cells.forEach((e)=> e.classList.value = 'cell');
+          }
     }
 }
 
 game.init();
+
+/* When the AI explores moves it changes winType through the checkMove functions and this leads to erroneous highlighting.*/
