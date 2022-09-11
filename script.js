@@ -1,54 +1,25 @@
 'use strict';
 
-function pickMaxMove(a, b) {
-    if ((a.score>b.score) ){
-        return a;
-    }
-    if (a.score<b.score){
-        return b;
-    }
-    if (Math.random()>.5){
-        return a;
-    }
-    return b
-}
-
-function pickMinMove(a, b) {
-    if ((a.score<b.score) ){
-        return a;
-    }
-    if (a.score>b.score){
-        return b;
-    }
-    if (Math.random()>.5){
-        return a;
-    }
-    return b
-}
-
-let winType = null;
-
 const game = {
-
     board: [
        [0, 0, 0],
        [0, 0, 0],
        [0, 0, 0]
     ],
 
+    winType: null,
+
     // For turn, player, cpu,   1 = X, -1 = O  
     turn: 1,
-    player: 1,
-    cpu: -1,
-
+  
     // For status:  null: game in progress, 1: X won, -1: O won, 0: tied 
     status: null,
 
     init: function() {
         this.cacheDom();
         this.bindEvents();
-        if (this.cpu === 1) {
-            this.cpuMove();
+        if (cpuPlayer.marker === 1) {
+            cpuPlayer.move();
         }
         this.render();
     },
@@ -70,58 +41,13 @@ const game = {
     
     bindEvents: function() {
         for (let cell of this.cells) {
-            cell.onclick = this.playerMove.bind(this);
+            cell.onclick = humanPlayer.move; //humanPlayer.move;
         }
         this.resetBtn.addEventListener('click', this.reset.bind(this));
         this.pickXorO.addEventListener('change', this.switchFunction.bind(this));
        
     },
 
-    cpuMove: function() {
-        // If the game is over, exit
-        if (this.status !== null){
-            return;
-        }
-
-        if (this.turn === this.cpu) {  
-            // Score each position on the board
-            const listOfMoves = []
-          
-            for (let i = 0; i < 3; i++) {
-                for (let j = 0; j < 3; j++) {
-                    if (this.board[i][j] === 0) {
-                        let move = {i: i, j: j, score: this.evaluateMove(i, j, 0, true).score}
-                        listOfMoves.push(move);
-                    }
-                }  
-            }
-
-            //for (let item of listOfMoves){
-            //    console.log(`Move: ${item.i}, ${item.j} Score: ${item.score} Depth: ${item.depth}`)
-            //}
-
-            // Select the move from the list with the highest score
-            
-           
-
-            const bestMove = listOfMoves.reduce(pickMaxMove);
-           
-           
-           
-            // console.log(`The best move is row:${bestMove.i}, col: ${bestMove.j}`);
-            
-            
-            this.board[bestMove.i][bestMove.j] = this.cpu;       
-            this.status = this.checkStatus().winner; 
-            if (this.checkStatus().code) winType = this.checkStatus().code;
-            this.highlightWin(); 
-            this.render();
-            this.turn = -this.turn;      
-            
-        }      
-    },
-
-    
     render: function() { 
         // Display board
         for (let cell of this.cells) {
@@ -143,7 +69,7 @@ const game = {
                 result.textContent = "You won!"
                 break;
             
-            case (this.cpu):
+            case (cpuPlayer.marker):
                 result.textContent = "You lost!"
                 break;
             
@@ -157,31 +83,13 @@ const game = {
     },
 
 
-    playerMove: function(e) {  
-        // If game is over, exit
-        if (this.status !== null){
-            return;
-        }
-
-        // If it is player's turn and they click on an open spot
-        // mark it with player's mark
-        // check status
-        if (this.turn === this.player && this.board[e.target.dataset.row][e.target.dataset.col] === 0) {
-            this.board[e.target.dataset.row][e.target.dataset.col] = this.player;
-            this.status = this.checkStatus().winner;
-            if (this.checkStatus().code) winType = this.checkStatus().code;
-            this.highlightWin(); 
-            this.render();
-            this.turn = -this.turn;
-            this.cpuMove();
-        }   
-    },
-
-    // Check functions returns who the winner is
-    // 1 === X, -1 === O, 0 === tie, null === still in play
+    // Check functions returns an object with a winner and code key.
+    // winner: 1 === X, -1 === O, 0 === tie, null === still in play
+    // code: 1 through 8 for which row, col, or diagonal.
+    
     checkStatus: function() {
-                    return {winner: (this.checkRows().winner ||  this.checkCols().winner || this.checkDiagonals().winner || this.checkForTie().winner), 
-                            code:  (this.checkRows().code ||  this.checkCols().code || this.checkDiagonals().code || null)}
+        return {winner: (this.checkRows().winner ||  this.checkCols().winner || this.checkDiagonals().winner || this.checkForTie().winner), 
+                code:  (this.checkRows().code ||  this.checkCols().code || this.checkDiagonals().code || null)}
     },
 
     checkRows: function() {
@@ -190,7 +98,7 @@ const game = {
                 return {winner: 1, code: i+1} ;
             }
             else if (this.board[i].reduce((a,b)=>a+b) === -3) {
-                 return {winner: -1, code: i+1};
+                return {winner: -1, code: i+1};
             }
         }
         return {winner: null};
@@ -206,7 +114,7 @@ const game = {
             let code = colCheck.indexOf(-3) + 4;
             return {winner: -1, code: code};
         }
-        return {winner: null};
+    return {winner: null};
     },
 
     checkDiagonals: function() {
@@ -239,7 +147,7 @@ const game = {
     },
 
     reset: function () {
-        winType = null;
+        this.winType = null;
         for (let i = 0; i < 3; i++) {
             for (let j = 0; j < 3; j++) {
                 this.board[i][j] = 0;
@@ -248,96 +156,27 @@ const game = {
         this.turn = 1;
         this.result.textContent = ' ';
         this.status = null;
-
-        //this.cells.forEach((e)=> (console.log(e.classList)));
         for (let cell of this.cells) {
             cell.classList.value = 'cell';
         }
-       
+
         this.render();
-        if (game.cpu === 1) {
-            game.cpuMove();
+        if (cpuPlayer.marker === 1) {
+            cpuPlayer.move();
         }
     },
 
-    // The function bound to the toggle switch for picking X or O
-    switchFunction: function () {
-        this.player = -this.player;
-        this.cpu = -this.cpu;
-        this.reset();
-    },
-
-    evaluateMove: function (row, col, depth, isMaximizing) {
-       
-        // The board is temporary modified with a tentative move and evaluated   
-        if (depth%2 === 0) {
-            this.board[row][col] = this.cpu;
-        } 
-        else {
-            this.board[row][col] = -this.cpu;    
-        }
-        
-        let score = null;
-
-        // If the move would end the game return its score
-        // but undo the move first
-
-        // If cpu is X (1) and checkStatus() is 1, cpu wins, so score it as 1
-        // If cpu is O (-1) and checkStatus() is 1, player wins, so score is -1
-        // If cpu is O (-1) and checkStatus() is -1, cpu wins, so score is 1?
-
-
-        if (this.checkStatus().winner !== null) {
-            score = 10*this.checkStatus().winner*this.cpu/(depth+1);
-            this.board[row][col] = 0;
-            return {score};
-        }
-
-       
-        const listOfMoves = []
-        if (isMaximizing) {
-            for (let i = 0; i < 3; i++) {
-                for (let j = 0; j < 3; j++) {
-                    if (this.board[i][j] === 0) {
-                        let move = {i: i, j: j, score: this.evaluateMove(i, j, depth+1, false).score}
-                        listOfMoves.push(move);
-                    }
-                }
-            }
-            const bestMove = listOfMoves.reduce(pickMinMove);
-            this.board[row][col] = 0;
-            return {score: bestMove.score}
-        }
-
-        else {
-            for (let i = 0; i < 3; i++) {
-                for (let j = 0; j < 3; j++) {
-                    if (this.board[i][j] === 0) {
-                        let move = {i: i, j: j, score: this.evaluateMove(i, j, depth+1, true).score}
-                        listOfMoves.push(move);
-                    }
-                }
-            }
-            const bestMove = listOfMoves.reduce(pickMaxMove);
-            this.board[row][col] = 0;
-            return {score: bestMove.score}
-        }
-    },
-
-   highlightWin: function() {
-        switch(winType) {
+    highlightWin: function() {
+        switch(this.winType) {
             case (1):
                 this.topRow.forEach((e) => e.classList.add("winning"));
-                
                 break;
             case (2):
                 this.midRow.forEach((e) => e.classList.add("winning"));  
                 break;
-            
             case (3):
                 this.botRow.forEach((e) => e.classList.add("winning"));
                 break;
-
             case (4):
                 this.leftCol.forEach((e) => e.classList.add("winning"));
                 break;
@@ -347,21 +186,167 @@ const game = {
             case (6):
                 this.rightCol.forEach((e) => e.classList.add("winning"));
                 break;
-           
             case (7):
                 this.rightDiagonal.forEach((e) => e.classList.add("winning"));
                 break;
             case (8):
                 this.leftDiagonal.forEach((e) => e.classList.add("winning"));   
                 break;
-                
-            
             default:
                 this.cells.forEach((e)=> e.classList.value = 'cell');
           }
+    },
+
+    // The function bound to the toggle switch for picking X or O
+    switchFunction: function () {
+        humanPlayer.marker = -humanPlayer.marker;
+        cpuPlayer.marker = -cpuPlayer.marker;
+        this.reset();
+    },
+
+}
+   
+const cpuPlayer = {
+    marker: -1,
+    move: function() {
+        // If the game is over, exit
+        if (game.status !== null){
+            return;
+        }
+
+        if (game.turn === cpuPlayer.marker) {  
+            // Score each position on the board
+            const listOfMoves = []
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    if (game.board[i][j] === 0) {
+                        let move = {i: i, j: j, score: cpuPlayer.evaluateMove(i, j, 0, true).score}
+                        listOfMoves.push(move);
+                    }
+                }  
+            }
+            // Select the move from the list with the highest score
+            const bestMove = listOfMoves.reduce(cpuPlayer.pickMaxMove); 
+            game.board[bestMove.i][bestMove.j] = cpuPlayer.marker;       
+            game.status = game.checkStatus().winner; 
+            if (game.checkStatus().code) game.winType = game.checkStatus().code;
+            game.highlightWin(); 
+            game.render();
+            game.turn = -game.turn;      
+        }      
+    },
+
+    evaluateMove: function (row, col, depth, isMaximizing) {
+        // The board is temporary modified with a tentative move and evaluated   
+        if (depth%2 === 0) {
+            game.board[row][col] = cpuPlayer.marker;
+        } 
+        else {
+            game.board[row][col] = -cpuPlayer.marker;    
+        }
+        
+        let score = null;
+
+        // If the move would end the game return its score
+        // but undo the move first
+
+        // If cpu is X (1) and checkStatus() is 1, cpu wins, so score it as 1
+        // If cpu is O (-1) and checkStatus() is 1, player wins, so score is -1
+        // If cpu is O (-1) and checkStatus() is -1, cpu wins, so score is 1
+        // Thus score is a product of cpuPlayer.marker and checkStatus
+
+
+        if (game.checkStatus().winner !== null) {
+            score = 10*game.checkStatus().winner*this.marker/(depth+1);
+            game.board[row][col] = 0;
+            return {score};
+        }
+
+       
+        const listOfMoves = []
+        if (isMaximizing) {
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    if (game.board[i][j] === 0) {
+                        let move = {i: i, j: j, score: cpuPlayer.evaluateMove(i, j, depth+1, false).score}
+                        listOfMoves.push(move);
+                    }
+                }
+            }
+            const bestMove = listOfMoves.reduce(cpuPlayer.pickMinMove);
+            game.board[row][col] = 0;
+            return {score: bestMove.score}
+        }
+
+        else {
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    if (game.board[i][j] === 0) {
+                        let move = {i: i, j: j, score: cpuPlayer.evaluateMove(i, j, depth+1, true).score}
+                        listOfMoves.push(move);
+                    }
+                }
+            }
+            const bestMove = listOfMoves.reduce(cpuPlayer.pickMaxMove);
+            game.board[row][col] = 0;
+            return {score: bestMove.score}
+        }
+    },
+
+    pickMaxMove: function(a, b) {
+        if ((a.score>b.score) ){
+            return a;
+        }
+        if (a.score<b.score){
+            return b;
+        }
+        if (Math.random()>.5){
+            return a;
+        }
+        return b
+    },
+    
+    pickMinMove: function(a, b) {
+        if ((a.score<b.score) ){
+            return a;
+        }
+        if (a.score>b.score){
+            return b;
+        }
+        if (Math.random()>.5){
+            return a;
+        }
+        return b
     }
 }
 
-game.init();
+const humanPlayer = {
+    marker: 1,
 
-/* When the AI explores moves it changes winType through the checkMove functions and this leads to erroneous highlighting.*/
+    move: function(e) {  
+        
+        
+        // If game is over, exit
+        if (game.status !== null){
+            
+            return;
+        }
+
+        // If it is player's turn and they click on an open spot
+        // mark it with player's mark
+        // check status
+        if (game.turn === humanPlayer.marker && game.board[e.target.dataset.row][e.target.dataset.col] === 0) {
+            console.log('here')
+            game.board[e.target.dataset.row][e.target.dataset.col] = humanPlayer.marker;
+            game.status = game.checkStatus().winner;
+            if (game.checkStatus().code) game.winType = game.checkStatus().code;
+            game.highlightWin(); 
+            game.render();
+            game.turn = -game.turn;
+            cpuPlayer.move();
+        }   
+    },
+
+}
+
+game.init();
