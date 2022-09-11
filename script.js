@@ -1,5 +1,7 @@
 'use strict';
 
+
+
 const game = {
 
     board: [
@@ -61,19 +63,16 @@ const game = {
                            
 
             // Select the move from the list with the highest score
-          //  const bestMove = listOfMoves.reduce((prev, current) => (prev.score > current.score) ? prev : current)
+            const bestMove = listOfMoves.reduce(function (prev, current) {
+                if (prev.score >= current.score) return prev;
+                if (prev.score < current.score) return current;
+                if (prev.score === current.score && Math.random() < 0.5) return prev;
+                return current;
+
+                }, ); 
+                
+            console.log(bestMove)
             
-            const bestMove = listOfMoves.reduce(
-                function (prev, current) {
-                    if (prev.score > current.score) {
-                        return prev;
-                    }
-                    if (prev.score < current.score) {
-                        return current;
-                    }
-                    return Math.random() < 0.5 ? prev : current;
-                }
-            )
            
             
             this.board[bestMove.row][bestMove.col] = this.cpu;       
@@ -238,15 +237,34 @@ const game = {
     
         const listOfMoves = []
 
-        function pickMove(prev, current) {
-            if ((prev.score > current.score && isMaximizing) || (prev.score < current.score && !isMaximizing)) {
+      
+        function pickMaxMove(prev, current) {
+       
+            if (prev.score > current.score) {
                 return prev;
             }
-            if ((prev.score < current.score && !isMaximizing) || (prev.score < current.score && isMaximizing)) {
+            if (prev.score < current.score) {
                 return current;
             }
-            return Math.random() < 0.5 ? prev : current;
+            if (prev.score === current.score){
+                return Math.random() < 0.5 ? prev : current;
+            }
+            console.log("problem")
         }
+
+        function pickMinMove(prev, current) {
+            if (prev.score < current.score) {
+                return prev;
+            }
+            if (prev.score > current.score) {
+                return current;
+            }
+            if (prev.score === current.score){
+                return Math.random() < 0.5 ? prev : current;
+            }
+            console.log("problem")
+        }
+
 
         if (isMaximizing) {
             this.board.forEach((rowContent, row) => {rowContent.forEach (
@@ -257,7 +275,8 @@ const game = {
                     } 
                 }
             ); });
-            const bestMove = listOfMoves.reduce(pickMove);
+            const bestMove = listOfMoves.reduce(pickMaxMove);
+           
             // Removing added move
             this.board[row][col] = 0;
             return {score: bestMove.score}
@@ -273,8 +292,8 @@ const game = {
                 }
             ); });
 
-            const bestMove = listOfMoves.reduce(pickMove);
-
+            const bestMove = listOfMoves.reduce(pickMinMove);
+  
              // Removing added move
             this.board[row][col] = 0;
             return {score: bestMove.score}
