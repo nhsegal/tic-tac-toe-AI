@@ -1,7 +1,5 @@
 'use strict';
 
-
-
 const game = {
 
     board: [
@@ -40,6 +38,7 @@ const game = {
         }
         this.resetBtn.addEventListener('click', this.reset.bind(this));
         this.pickXorO.addEventListener('change', this.switchFunction.bind(this));
+       
     },
 
     cpuMove: function() {
@@ -49,33 +48,29 @@ const game = {
         }
 
         if (this.turn === this.cpu) {  
-            // Score each position on the board and store it in an array
+            // Score each position on the board
             const listOfMoves = []
           
-            this.board.forEach((rowContent, row, arr) => {rowContent.forEach (
-                (cellContent, col, arr) => { 
-                    if (cellContent === 0) {
-                        let move = {row, col, score: this.evaluateMove(row, col, 0, true).score}
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    if (this.board[i][j] === 0) {
+                        let move = {i: i, j: j, score: this.evaluateMove(i, j, 0, true).score}
                         listOfMoves.push(move);
-                    } 
-                }
-            ); });
-                           
+                    }
+                }  
+            }
+
+            //for (let item of listOfMoves){
+            //    console.log(`Move: ${item.i}, ${item.j} Score: ${item.score} Depth: ${item.depth}`)
+            //}
 
             // Select the move from the list with the highest score
-            const bestMove = listOfMoves.reduce(function (prev, current) {
-                if (prev.score >= current.score) return prev;
-                if (prev.score < current.score) return current;
-                if (prev.score === current.score && Math.random() < 0.5) return prev;
-                return current;
-
-                }, ); 
-                
-            console.log(bestMove)
             
-           
+            const bestMove = listOfMoves.reduce((prev, current) => (prev.score > current.score) ? prev : current)
+           // console.log(`The best move is row:${bestMove.i}, col: ${bestMove.j}`);
             
-            this.board[bestMove.row][bestMove.col] = this.cpu;       
+            
+            this.board[bestMove.i][bestMove.j] = this.cpu;       
             this.status = this.checkStatus(); 
             this.render();
             this.turn = -this.turn;      
@@ -190,9 +185,11 @@ const game = {
     },
 
     reset: function () {
-        this.board.forEach( (rowContent, row, board) => {board[row].forEach(
-            (cellContent, col, thisRow) => { thisRow[col] = 0});}); 
-        
+        for (let i = 0; i < 3; i++) {
+            for (let j = 0; j < 3; j++) {
+                this.board[i][j] = 0;
+            }
+        }
         this.turn = 1;
         this.result.textContent = ' ';
         this.status = null;
@@ -210,7 +207,10 @@ const game = {
     },
 
     evaluateMove: function (row, col, depth, isMaximizing) {
+       
         // The board is temporary modified with a tentative move and evaluated   
+
+
         if (depth%2 === 0) {
             this.board[row][col] = this.cpu;
         } 
@@ -225,8 +225,8 @@ const game = {
 
         // If cpu is X (1) and checkStatus() is 1, cpu wins, so score it as 1
         // If cpu is O (-1) and checkStatus() is 1, player wins, so score is -1
-        // If cpu is O (-1) and checkStatus() is -1, cpu wins, so score is 1
-        // Thus score is checkStatus()*cpu. 
+        // If cpu is O (-1) and checkStatus() is -1, cpu wins, so score is 1?
+
 
         if (this.checkStatus() !== null) {
             score = 10*this.checkStatus()*this.cpu/(depth+1);
@@ -234,72 +234,36 @@ const game = {
             return {score};
         }
 
-    
-        const listOfMoves = []
-
-      
-        function pickMaxMove(prev, current) {
        
-            if (prev.score > current.score) {
-                return prev;
-            }
-            if (prev.score < current.score) {
-                return current;
-            }
-            if (prev.score === current.score){
-                return Math.random() < 0.5 ? prev : current;
-            }
-            console.log("problem")
-        }
-
-        function pickMinMove(prev, current) {
-            if (prev.score < current.score) {
-                return prev;
-            }
-            if (prev.score > current.score) {
-                return current;
-            }
-            if (prev.score === current.score){
-                return Math.random() < 0.5 ? prev : current;
-            }
-            console.log("problem")
-        }
-
-
+        const listOfMoves = []
         if (isMaximizing) {
-            this.board.forEach((rowContent, row) => {rowContent.forEach (
-                (cellContent, col) => { 
-                    if (cellContent === 0) {
-                        let move = {row, col, score: this.evaluateMove(row, col, depth+1, false).score}
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    if (this.board[i][j] === 0) {
+                        let move = {i: i, j: j, score: this.evaluateMove(i, j, depth+1, false).score}
                         listOfMoves.push(move);
-                    } 
+                    }
                 }
-            ); });
-            const bestMove = listOfMoves.reduce(pickMaxMove);
-           
-            // Removing added move
+            }
+            const bestMove = listOfMoves.reduce((prev, current) => (prev.score < current.score) ? prev : current);
             this.board[row][col] = 0;
             return {score: bestMove.score}
         }
 
         else {
-            this.board.forEach((rowContent, row) => {rowContent.forEach (
-                (cellContent, col) => { 
-                    if (cellContent === 0) {
-                        let move = {row, col, score: this.evaluateMove(row, col, depth+1, true).score}
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    if (this.board[i][j] === 0) {
+                        let move = {i: i, j: j, score: this.evaluateMove(i, j, depth+1, true).score}
                         listOfMoves.push(move);
-                    } 
+                    }
                 }
-            ); });
-
-            const bestMove = listOfMoves.reduce(pickMinMove);
-  
-             // Removing added move
+            }
+            const bestMove = listOfMoves.reduce((prev, current) => (prev.score > current.score) ? prev : current);
             this.board[row][col] = 0;
             return {score: bestMove.score}
         }
-    },
+    }
 }
 
 game.init();
-
