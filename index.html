@@ -10,17 +10,28 @@
 </head>
 <body>
     <div id="result"> </div>
-    <div id="board">
-        <div class="cell" data-row="0" data-col="0"> </div>
-        <div class="cell" data-row="0" data-col="1"> </div>
-        <div class="cell" data-row="0" data-col="2"> </div>
-        <div class="cell" data-row="1" data-col="0"> </div>
-        <div class="cell" data-row="1" data-col="1"> </div>
-        <div class="cell" data-row="1" data-col="2"> </div>
-        <div class="cell" data-row="2" data-col="0"> </div>
-        <div class="cell" data-row="2" data-col="1"> </div>
-        <div class="cell" data-row="2" data-col="2"> </div>
+    <div id="boardcontainer">
+        <div id="empty"> </div>
+        <div id="board">
+            <div class="cell" data-row="0" data-col="0"> </div>
+            <div class="cell" data-row="0" data-col="1"> </div>
+            <div class="cell" data-row="0" data-col="2"> </div>
+            <div class="cell" data-row="1" data-col="0"> </div>
+            <div class="cell" data-row="1" data-col="1"> </div>
+            <div class="cell" data-row="1" data-col="2"> </div>
+            <div class="cell" data-row="2" data-col="0"> </div>
+            <div class="cell" data-row="2" data-col="1"> </div>
+            <div class="cell" data-row="2" data-col="2"> </div>
+        </div>
+        <div id="game_mode">
+           <p>Game Mode:</p> 
+            <input type="radio"  name="game_mode" value="1" id="easy" checked>
+            <label for="easy">Easy</label>
+            <input type="radio"  name="game_mode" value="6" id="hard">
+            <label for="hard">Hard</label>
+        </div>
     </div>
+    
     <button type="button" id="resetBtn">Reset</button>
     
     <div id="switch_container"> 

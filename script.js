@@ -37,14 +37,20 @@ const game = {
         this.rightCol = document.querySelectorAll("[data-col='2']");
         this.leftDiagonal = document.querySelectorAll("[data-col='0'][data-row='0'], [data-col='1'][data-row='1'], [data-col='2'][data-row='2']" );
         this.rightDiagonal = document.querySelectorAll("[data-col='2'][data-row='0'], [data-col='1'][data-row='1'], [data-col='0'][data-row='2']");
+        this.gameMode = document.querySelector('input[name=game_mode]:checked').value;
+        this.setGameMode = document.querySelectorAll('input[name=game_mode]');
     },
     
     bindEvents: function() {
         for (let cell of this.cells) {
             cell.onclick = humanPlayer.move; //humanPlayer.move;
         }
+        
         this.resetBtn.addEventListener('click', this.reset.bind(this));
         this.pickXorO.addEventListener('change', this.switchFunction.bind(this));
+        for (let radio of this.setGameMode) {
+            radio.onclick = (e)=> {this.gameMode = e.target.value;}; //humanPlayer.move;
+        }
        
     },
 
@@ -204,6 +210,11 @@ const game = {
         this.reset();
     },
 
+    changeGameMode: function(e) {
+        this.gameMode = e.target.value;
+        console.log(this.gameMode)
+    }
+
 }
    
 const cpuPlayer = {
@@ -254,7 +265,11 @@ const cpuPlayer = {
         // If cpu is O (-1) and checkStatus() is 1, player wins, so score is -1
         // If cpu is O (-1) and checkStatus() is -1, cpu wins, so score is 1
         // Thus score is a product of cpuPlayer.marker and checkStatus
-
+        if (depth > game.gameMode){
+            score = 0;
+            game.board[row][col] = 0;
+            return {score};
+        }
 
         if (game.checkStatus().winner !== null) {
             score = 10*game.checkStatus().winner*this.marker/(depth+1);
@@ -336,7 +351,6 @@ const humanPlayer = {
         // mark it with player's mark
         // check status
         if (game.turn === humanPlayer.marker && game.board[e.target.dataset.row][e.target.dataset.col] === 0) {
-            console.log('here')
             game.board[e.target.dataset.row][e.target.dataset.col] = humanPlayer.marker;
             game.status = game.checkStatus().winner;
             if (game.checkStatus().code) game.winType = game.checkStatus().code;

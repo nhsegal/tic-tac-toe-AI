@@ -7,6 +7,10 @@ body {
     
 }
 
+p {
+  margin: 0;
+}
+
 #result {
     font-size: 46px;
     margin-top: 1rem;
@@ -14,10 +18,18 @@ body {
     text-align: center;
 }
 
-#board {
-    width: fit-content;
-    margin: 2rem;
+#boardcontainer {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  
+}
 
+#board {
+    width: 320px;
+    margin: 2rem;
     color: rgb(80,80,80);
     display: grid;
     grid-template-columns: 100px 100px 100px;
@@ -43,29 +55,6 @@ body {
     transition: transform .8s ease-in-out;
 }
 
-@keyframes append-animate {
-  from {
-    transform: rotate(360deg) scale(0);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-.new-entry {
-  transform-origin: 50% 50%;
-  animation: append-animate 1s linear;
-}
-/*
-.cell #adding {
-  transform: rotate(360deg) scale(.01);
-  -ms-transform: rotate(360deg) scale(.01);
-  -webkit-transform: rotate(360deg) scale(.01);
-}
-*/
-
 .winning {
   color: red;
 }
@@ -82,7 +71,6 @@ button {
 }
 
 button:active {
-
   box-shadow: 0 1px #666;
   transform: translateY(4px);
 }
@@ -99,7 +87,6 @@ button:active {
     opacity: 0;
     width: 0;
     height: 0;
-    
   }
   
   .slider {
@@ -160,17 +147,23 @@ button:active {
     font-size: 6rem;
   }
 
-  #rotating_image {
-    position: absolute;
-    left: 70px;
-    top: 100px;
-    -webkit-transition: -webkit-transform .8s ease-in-out;
-    -ms-transition: -ms-transform .8s ease-in-out;
-    transition: transform .8s ease-in-out;
-  
+  #game_mode {
+    font-size: 2rem;
+    width: 240px;
+
   }
-  #rotating_image:hover {
-    transform: rotate(360deg) scale(2);
-    -ms-transform: rotate(360deg) scale(2);
-    -webkit-transform: rotate(360deg) scale(2);
+
+  label {
+    margin-right: 0px;
   }
+
+  input[type="radio"]{
+    margin-right: -20px;
+    margin-left: 40px;
+    transform: scale(1.5);
+  }
+
+  #empty {
+    width: 240px;
+  }
+
