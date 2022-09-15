@@ -150,7 +150,6 @@ button:active {
   #game_mode {
     font-size: 2rem;
     width: 240px;
-
   }
 
   label {
@@ -158,9 +157,9 @@ button:active {
   }
 
   input[type="radio"]{
-    margin-right: -20px;
+    margin-right: 0px;
     margin-left: 40px;
-    transform: scale(1.5);
+    transform: scale(1.5)
   }
 
   #empty {

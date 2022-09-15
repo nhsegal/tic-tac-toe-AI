@@ -71,7 +71,7 @@ const game = {
 
         // Display status
         switch(this.status) {
-            case (this.player):
+            case (humanPlayer.marker):
                 result.textContent = "You won!"
                 break;
             
